@@ -1,0 +1,1 @@
+"""FinPulse config package."""
