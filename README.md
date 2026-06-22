@@ -1,5 +1,10 @@
 # FinPulse Intelligence Platform
 
+🔗 **[Live API](https://finpulse-intelligence-c819.onrender.com)** · 🖥️ **[Live Dashboard](https://karishmaram-tech.github.io/finpulse/)**
+
+> Free-tier hosting: the API sleeps after 15 min idle — first request may take 30-60s to wake up.
+
+
 A production-deployed, modular multi-agent financial research system. Built on [agno](https://github.com/agno-agi/agno) and Groq's `llama-3.3-70b-versatile`, FinPulse coordinates specialized agents to deliver validated market data, analyst sentiment, and real-time financial news — with the engineering discipline (typed contracts, caching, retries, observability, CI/CD) of a real production service, not a wrapper script.
 
 ---
