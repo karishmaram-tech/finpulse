@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinPulse Intelligence Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+header {
+  padding: 14px 24px;
+  background: #161b27;
+  border-bottom: 1px solid #1e2a3a;
+  display: flex; align-items: center; gap: 12px;
+}
+.logo { width: 34px; height: 34px; background: linear-gradient(135deg, #00d4aa, #0070f3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+header h1 { font-size: 15px; font-weight: 600; }
+header p { font-size: 11px; color: #64748b; }
+.status { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #00d4aa; }
+.dot { width: 7px; height: 7px; background: #00d4aa; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+nav {
+  display: flex; gap: 4px; padding: 10px 24px;
+  background: #161b27; border-bottom: 1px solid #1e2a3a;
+}
+.tab {
+  padding: 6px 16px; border-radius: 6px; font-size: 13px;
+  cursor: pointer; color: #64748b; border: none; background: none;
+  transition: all 0.15s;
+}
+.tab.active { background: #00d4aa1a; color: #00d4aa; }
+.tab:hover:not(.active) { color: #94a3b8; background: #ffffff08; }
+
+.page { display: none; padding: 24px; }
+.page.active { display: block; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+
+.card {
+  background: #161b27; border: 1px solid #1e2a3a;
+  border-radius: 12px; padding: 16px;
+}
+.card h3 { font-size: 13px; color: #64748b; font-weight: 400; margin-bottom: 8px; }
+.card .val { font-size: 22px; font-weight: 600; color: #f1f5f9; }
+.card .change { font-size: 12px; margin-top: 4px; }
+.up { color: #00d4aa; }
+.down { color: #f87171; }
+
+.chart-card { background: #161b27; border: 1px solid #1e2a3a; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+.chart-card h3 { font-size: 14px; font-weight: 500; color: #94a3b8; margin-bottom: 16px; }
+
+.portfolio-table { width: 100%; border-collapse: collapse; }
+.portfolio-table th { font-size: 12px; color: #64748b; text-align: left; padding: 8px 12px; border-bottom: 1px solid #1e2a3a; }
+.portfolio-table td { font-size: 13px; padding: 10px 12px; border-bottom: 1px solid #0f1117; }
+.portfolio-table tr:hover td { background: #ffffff04; }
+
+.add-stock { display: flex; gap: 8px; margin-bottom: 16px; }
+.add-stock input {
+  flex: 1; background: #0f1117; border: 1px solid #1e2a3a;
+  border-radius: 8px; padding: 9px 14px; color: #e2e8f0; font-size: 13px; outline: none;
+}
+.add-stock input:focus { border-color: #00d4aa55; }
+.btn {
+  background: linear-gradient(135deg, #00d4aa, #0070f3); border: none;
+  border-radius: 8px; padding: 9px 18px; color: #fff; font-size: 13px;
+  font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.btn:hover { opacity: 0.85; }
+.btn-sm {
+  background: none; border: 1px solid #1e2a3a; border-radius: 6px;
+  padding: 4px 10px; color: #94a3b8; font-size: 12px; cursor: pointer;
+}
+.btn-sm:hover { border-color: #f8717155; color: #f87171; }
+.btn-ask {
+  background: none; border: 1px solid #1e2a3a; border-radius: 6px;
+  padding: 4px 10px; color: #60a5fa; font-size: 12px; cursor: pointer;
+}
+.btn-ask:hover { border-color: #60a5fa55; }
+
+.chat-wrap { display: flex; flex-direction: column; height: calc(100vh - 180px); }
+#chat { flex: 1; overflow-y: auto; padding: 16px 0; display: flex; flex-direction: column; gap: 14px; }
+.msg { display: flex; gap: 10px; }
+.msg.user { flex-direction: row-reverse; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+.msg.user .avatar { background: #0070f3; }
+.msg.agent .avatar { background: linear-gradient(135deg, #00d4aa, #0070f3); }
+.bubble { padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.6; max-width: 600px; }
+.msg.user .bubble { background: #0070f3; color: #fff; border-bottom-right-radius: 3px; }
+.msg.agent .bubble { background: #161b27; border: 1px solid #1e2a3a; border-bottom-left-radius: 3px; }
+.bubble table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 12px; }
+.bubble th { background: #0f1117; padding: 5px 10px; text-align: left; color: #94a3b8; border: 1px solid #1e2a3a; }
+.bubble td { padding: 5px 10px; border: 1px solid #1e2a3a; }
+.typing { display: flex; align-items: center; gap: 4px; padding: 12px 14px; }
+.typing span { width: 6px; height: 6px; background: #00d4aa; border-radius: 50%; animation: bounce 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4} 40%{transform:translateY(-5px);opacity:1} }
+
+.input-row { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #1e2a3a; }
+#msg-input { flex: 1; background: #0f1117; border: 1px solid #1e2a3a; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 13px; outline: none; }
+#msg-input:focus { border-color: #00d4aa55; }
+
+.quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.quick-btn { font-size: 12px; padding: 5px 12px; border: 1px solid #1e2a3a; border-radius: 6px; background: #161b27; color: #94a3b8; cursor: pointer; transition: all 0.15s; }
+.quick-btn:hover { border-color: #00d4aa55; color: #00d4aa; }
+
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+.badge-up { background: #00d4aa15; color: #00d4aa; }
+.badge-down { background: #f8717115; color: #f87171; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📈</div>
+  <div>
+    <h1>FinPulse Intelligence Platform</h1>
+    <p>Validated data · Cached · Resilient</p>
+  </div>
+  <div class="status"><div class="dot"></div> Live</div>
+</header>
+
+<nav>
+  <button class="tab active" onclick="showPage('overview')">Overview</button>
+  <button class="tab" onclick="showPage('portfolio')">Portfolio</button>
+  <button class="tab" onclick="showPage('chat')">AI Chat</button>
+</nav>
+
+<div id="overview" class="page active">
+  <div class="grid-4">
+    <div class="card"><h3>AAPL</h3><div class="val" id="aapl-price">--</div><div class="change up" id="aapl-chg"></div></div>
+    <div class="card"><h3>TSLA</h3><div class="val" id="tsla-price">--</div><div class="change up" id="tsla-chg"></div></div>
+    <div class="card"><h3>GOOGL</h3><div class="val" id="googl-price">--</div><div class="change up" id="googl-chg"></div></div>
+    <div class="card"><h3>MSFT</h3><div class="val" id="msft-price">--</div><div class="change up" id="msft-chg"></div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <h3>Portfolio allocation</h3>
+      <div style="position:relative;height:220px;">
+        <canvas id="allocChart" role="img" aria-label="Donut chart showing portfolio allocation across AAPL, TSLA, GOOGL, MSFT">AAPL 40%, TSLA 25%, GOOGL 20%, MSFT 15%</canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Simulated performance (12 months)</h3>
+      <div style="position:relative;height:220px;">
+        <canvas id="perfChart" role="img" aria-label="Line chart showing portfolio performance over 12 months">Portfolio grew from $10,000 to $13,200</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Quick actions</h3>
+    <div class="quick-btns">
+      <div class="quick-btn" onclick="goChat('What is the current stock price of Apple?')">Apple stock price</div>
+      <div class="quick-btn" onclick="goChat('Give me analyst recommendations for Tesla')">Tesla recommendations</div>
+      <div class="quick-btn" onclick="goChat('What is the latest news about Microsoft?')">Microsoft news</div>
+      <div class="quick-btn" onclick="goChat('Compare Apple and Google stock prices')">Compare AAPL vs GOOGL</div>
+      <div class="quick-btn" onclick="goChat('Give me company info for Amazon')">Amazon info</div>
+    </div>
+  </div>
+</div>
+
+<div id="portfolio" class="page">
+  <div class="add-stock">
+    <input id="ticker-input" type="text" placeholder="Enter stock ticker (e.g. AAPL, TSLA, AMZN)" />
+    <input id="shares-input" type="number" placeholder="Shares" style="width:100px;" />
+    <input id="price-input" type="number" placeholder="Avg buy price" style="width:130px;" />
+    <button class="btn" onclick="addStock()">Add to portfolio</button>
+  </div>
+
+  <div class="chart-card">
+    <table class="portfolio-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Shares</th>
+          <th>Avg buy price</th>
+          <th>Current price</th>
+          <th>Value</th>
+          <th>P&L</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="portfolio-body">
+        <tr><td colspan="7" style="color:#64748b;text-align:center;padding:24px;">No stocks added yet. Add your first stock above!</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="portfolio-summary" style="display:none;" class="grid-3">
+    <div class="card"><h3>Total invested</h3><div class="val" id="total-invested">--</div></div>
+    <div class="card"><h3>Current value</h3><div class="val" id="total-value">--</div></div>
+    <div class="card"><h3>Total P&L</h3><div class="val" id="total-pnl">--</div></div>
+  </div>
+</div>
+
+<div id="chat" class="page">
+  <div class="chat-wrap">
+    <div class="quick-btns">
+      <div class="quick-btn" onclick="sendMsg('What is the current stock price of Apple?')">Apple price</div>
+      <div class="quick-btn" onclick="sendMsg('Analyst recommendations for Tesla')">Tesla recs</div>
+      <div class="quick-btn" onclick="sendMsg('Latest Microsoft news')">MSFT news</div>
+      <div class="quick-btn" onclick="sendMsg('Compare Apple and Google')">AAPL vs GOOGL</div>
+    </div>
+    <div id="chat"></div>
+    <div class="input-row">
+      <input id="msg-input" type="text" placeholder="Ask about any stock, market news, or company..." />
+      <button class="btn" onclick="sendMsg()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://finpulse-intelligence-c819.onrender.com/teams/finpulse-team/runs';
+const FINANCE_API = 'https://finpulse-intelligence-c819.onrender.com/agents/market-data-agent/runs';
+let portfolio = [];
+let priceCache = {};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+async function callAgent(msg) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `message=${encodeURIComponent(msg)}&stream=false&monitor=false`
+  });
+  const data = await res.json();
+  return data.status === 'COMPLETED' ? data.content : null;
+}
+
+function parsePrice(text) {
+  const m = text.match(/\$?([\d,]+\.?\d*)/);
+  return m ? parseFloat(m[1].replace(',', '')) : null;
+}
+
+async function loadOverviewPrices() {
+  const stocks = [
+    { id: 'aapl', ticker: 'AAPL' },
+    { id: 'tsla', ticker: 'TSLA' },
+    { id: 'googl', ticker: 'GOOGL' },
+    { id: 'msft', ticker: 'MSFT' },
+  ];
+  for (const s of stocks) {
+    try {
+      const res2 = await fetch(FINANCE_API, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `message=${encodeURIComponent('What is the current stock price of ' + s.ticker + '? Reply with just the price.')}&stream=false&monitor=false` });
+      const d2 = await res2.json();
+      const resp = d2.status === 'COMPLETED' ? d2.content : null;
+      if (resp) {
+        const price = parsePrice(resp);
+        if (price) {
+          document.getElementById(`${s.id}-price`).textContent = `$${price.toFixed(2)}`;
+          priceCache[s.ticker] = price;
+        }
+      }
+    } catch(e) {}
+  }
+}
+
+function buildAllocChart() {
+  new Chart(document.getElementById('allocChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['AAPL', 'TSLA', 'GOOGL', 'MSFT'],
+      datasets: [{
+        data: [40, 25, 20, 15],
+        backgroundColor: ['#00d4aa', '#0070f3', '#a855f7', '#f59e0b'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw}%` } }
+      }
+    }
+  });
+}
+
+function buildPerfChart() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const vals = [10000,10400,10200,10800,11200,11000,11600,12100,11800,12400,12900,13200];
+  new Chart(document.getElementById('perfChart'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Portfolio value',
+        data: vals,
+        borderColor: '#00d4aa',
+        backgroundColor: '#00d4aa18',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: '#00d4aa'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e2a3a' }, ticks: { color: '#64748b', font: { size: 11 } } },
+        y: { grid: { color: '#1e2a3a' }, ticks: { color: '#64748b', font: { size: 11 }, callback: v => '$' + v.toLocaleString() } }
+      }
+    }
+  });
+}
+
+async function addStock() {
+  const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+  const shares = parseFloat(document.getElementById('shares-input').value);
+  const buyPrice = parseFloat(document.getElementById('price-input').value);
+
+  if (!ticker || isNaN(shares) || isNaN(buyPrice)) {
+    alert('Please fill in all fields');
+    return;
+  }
+
+  let currentPrice = priceCache[ticker];
+  if (!currentPrice) {
+    try {
+      const res3 = await fetch(FINANCE_API, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `message=${encodeURIComponent('What is the current stock price of ' + ticker + '? Reply with just the price.')}&stream=false&monitor=false` });
+    const d3 = await res3.json();
+    const resp = d3.status === 'COMPLETED' ? d3.content : null;
+      if (resp) currentPrice = parsePrice(resp);
+    } catch(e) {}
+  }
+
+  portfolio.push({ ticker, shares, buyPrice, currentPrice: currentPrice || buyPrice });
+  priceCache[ticker] = currentPrice || buyPrice;
+
+  document.getElementById('ticker-input').value = '';
+  document.getElementById('shares-input').value = '';
+  document.getElementById('price-input').value = '';
+
+  renderPortfolio();
+}
+
+function renderPortfolio() {
+  const tbody = document.getElementById('portfolio-body');
+  if (portfolio.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:#64748b;text-align:center;padding:24px;">No stocks added yet.</td></tr>';
+    document.getElementById('portfolio-summary').style.display = 'none';
+    return;
+  }
+
+  let totalInvested = 0, totalValue = 0;
+  tbody.innerHTML = portfolio.map((s, i) => {
+    const invested = s.shares * s.buyPrice;
+    const value = s.shares * s.currentPrice;
+    const pnl = value - invested;
+    const pnlPct = ((pnl / invested) * 100).toFixed(2);
+    totalInvested += invested;
+    totalValue += value;
+    const cls = pnl >= 0 ? 'badge-up' : 'badge-down';
+    const sign = pnl >= 0 ? '+' : '';
+    return `<tr>
+      <td><strong>${s.ticker}</strong></td>
+      <td>${s.shares}</td>
+      <td>$${s.buyPrice.toFixed(2)}</td>
+      <td>$${s.currentPrice.toFixed(2)}</td>
+      <td>$${value.toFixed(2)}</td>
+      <td><span class="badge ${cls}">${sign}$${pnl.toFixed(2)} (${sign}${pnlPct}%)</span></td>
+      <td>
+        <button class="btn-ask" onclick="goChat('Give me latest news and analyst recommendations for ${s.ticker}')">Ask AI</button>
+        <button class="btn-sm" onclick="removeStock(${i})">Remove</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const totalPnl = totalValue - totalInvested;
+  const sign = totalPnl >= 0 ? '+' : '';
+  document.getElementById('total-invested').textContent = '$' + totalInvested.toFixed(2);
+  document.getElementById('total-value').textContent = '$' + totalValue.toFixed(2);
+  document.getElementById('total-pnl').style.color = totalPnl >= 0 ? '#00d4aa' : '#f87171';
+  document.getElementById('total-pnl').textContent = sign + '$' + totalPnl.toFixed(2);
+  document.getElementById('portfolio-summary').style.display = 'grid';
+}
+
+function removeStock(i) {
+  portfolio.splice(i, 1);
+  renderPortfolio();
+}
+
+function goChat(msg) {
+  showPage('chat');
+  document.querySelectorAll('.tab')[2].classList.add('active');
+  document.querySelectorAll('.tab')[0].classList.remove('active');
+  sendMsg(msg);
+}
+
+const chatEl = document.getElementById('chat');
+document.getElementById('msg-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+
+function addBubble(role, html) {
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  d.innerHTML = `<div class="avatar">${role === 'user' ? '👤' : '🤖'}</div><div class="bubble">${html}</div>`;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return d;
+}
+
+function formatResp(text) {
+  if (text.includes('|')) {
+    const lines = text.split('\n');
+    let html = '', inTable = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.trim().startsWith('|') && !line.includes('---')) {
+        if (!inTable) { html += '<table>'; inTable = true; }
+        const isHeader = lines[i+1]?.includes('---');
+        const cells = line.split('|').filter(c => c.trim());
+        const tag = isHeader ? 'th' : 'td';
+        html += `<tr>${cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('')}</tr>`;
+      } else if (line.trim().startsWith('|') && line.includes('---')) {
+        continue;
+      } else {
+        if (inTable) { html += '</table>'; inTable = false; }
+        if (line.trim()) html += `<p style="margin:4px 0">${line.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</p>`;
+      }
+    }
+    if (inTable) html += '</table>';
+    return html || text;
+  }
+  return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+}
+
+async function sendMsg(text) {
+  const msg = text || document.getElementById('msg-input').value.trim();
+  if (!msg) return;
+  document.getElementById('msg-input').value = '';
+
+  addBubble('user', msg);
+
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg agent'; typingDiv.id = 'typing';
+  typingDiv.innerHTML = '<div class="avatar">🤖</div><div class="bubble typing"><span></span><span></span><span></span></div>';
+  chatEl.appendChild(typingDiv);
+  chatEl.scrollTop = chatEl.scrollHeight;
+
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `message=${encodeURIComponent(msg)}&stream=false&monitor=false`
+    });
+    const data = await res.json();
+    document.getElementById('typing')?.remove();
+    if (data.status === 'COMPLETED') {
+      addBubble('agent', formatResp(data.content));
+    } else {
+      addBubble('agent', `<span style="color:#f87171">Error: ${data.content}</span>`);
+    }
+  } catch(e) {
+    document.getElementById('typing')?.remove();
+    addBubble('agent', '<span style="color:#f87171">Could not connect to the live server. If this is the first request in a while, the free instance may be waking up (~30-60s) — try again in a moment.</span>');
+  }
+}
+
+buildAllocChart();
+buildPerfChart();
+loadOverviewPrices();
+</script>
+</body>
+</html>
