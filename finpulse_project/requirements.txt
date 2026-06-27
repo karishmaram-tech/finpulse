@@ -1,0 +1,12 @@
+agno>=2.6.0
+groq
+yfinance
+duckduckgo-search
+ddgs
+pydantic>=2.0
+fastapi
+uvicorn
+sqlalchemy>=2.0
+psycopg[binary]>=3.1
+python-dotenv
+prometheus-client>=0.20.0

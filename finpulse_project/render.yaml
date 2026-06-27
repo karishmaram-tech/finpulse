@@ -1,0 +1,28 @@
+# =============================================================================
+# render.yaml — FinPulse Intelligence Platform
+# Infrastructure-as-code config for Render.com deployment (free tier).
+# No credit card required. Service sleeps after 15 min of inactivity on
+# the free plan and wakes on the next request (cold start ~30-60s).
+# =============================================================================
+
+services:
+  - type: web
+    name: finpulse-intelligence
+    runtime: docker
+    plan: free
+    region: oregon          # options: oregon, ohio, virginia, frankfurt, singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /docs
+    envVars:
+      - key: FINPULSE_HOST
+        value: 0.0.0.0
+      - key: FINPULSE_PORT
+        value: "7777"
+      - key: FINPULSE_LOG_LEVEL
+        value: INFO
+      - key: FINPULSE_CACHE_TTL
+        value: "300"
+      - key: GROQ_API_KEY
+        sync: false          # set manually in Render dashboard — never committed
+      - key: DATABASE_URL
+        sync: false          # optional — omit to use local SQLite fallback
